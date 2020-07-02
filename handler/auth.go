@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/ethien-salinas/echo-rest-api/db"
 	"net/http"
 	"os"
 	"time"
@@ -16,9 +17,10 @@ func Login(c echo.Context) error {
 	if err := c.Bind(u); err != nil {
 		return err
 	}
-
 	// Throws unauthorized error
-	if u.Email != "ethien.salinas@gmail.com" || u.Password != "qwerty" {
+	userLogged := db.ValidateUser(u.Email, u.Password)
+
+	if userLogged == "" {
 		return echo.ErrUnauthorized
 	}
 
@@ -27,7 +29,7 @@ func Login(c echo.Context) error {
 
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["name"] = u.Name
+	claims["name"] = userLogged
 	claims["admin"] = true
 	claims["exp"] = time.Now().Add(3 * time.Hour).Unix()
 
